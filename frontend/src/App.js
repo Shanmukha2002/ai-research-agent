@@ -2,15 +2,14 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
-const API = "https://ai-research-agent-ptrm.onrender.com/api";
+const API = "http://localhost:8000/api";
+
 function App() {
   const [query, setQuery] = useState("");
   const [sessions, setSessions] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
-  // Load all sessions on startup
   useEffect(() => {
     fetchSessions();
     const interval = setInterval(fetchSessions, 5000);
@@ -29,14 +28,12 @@ function App() {
   const startResearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
-    setMessage("");
     try {
       await axios.post(`${API}/research`, { query });
-      setMessage("Research started! Results will appear below in ~30 seconds.");
       setQuery("");
       setTimeout(fetchSessions, 3000);
     } catch (err) {
-      setMessage("Error starting research. Is the server running?");
+      alert("Error starting research. Is the server running?");
     }
     setLoading(false);
   };
@@ -61,175 +58,188 @@ function App() {
   };
 
   const statusColor = (status) => {
-    if (status === "completed") return "#22c55e";
+    if (status === "completed") return "#10b981";
     if (status === "running") return "#f59e0b";
     if (status === "failed") return "#ef4444";
     return "#94a3b8";
   };
 
+  const statusBg = (status) => {
+    if (status === "completed") return "#064e3b";
+    if (status === "running") return "#451a03";
+    if (status === "failed") return "#450a0a";
+    return "#1e293b";
+  };
+
   return (
-    <div style={{ fontFamily: "sans-serif", maxWidth: 1100, margin: "0 auto", padding: 24 }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#0f172a",
+      color: "#e2e8f0",
+      fontFamily: "'Segoe UI', sans-serif"
+    }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>
-          AI Research Agent
-        </h1>
-        <p style={{ color: "#64748b", marginTop: 4 }}>
-          Multi-agent system: Planner → Researcher → Writer
-        </p>
-      </div>
-
-      {/* Search Box */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && startResearch()}
-          placeholder="Enter a research topic..."
-          style={{
-            flex: 1, padding: "12px 16px", fontSize: 16,
-            border: "1px solid #e2e8f0", borderRadius: 8, outline: "none"
-          }}
-        />
-        <button
-          onClick={startResearch}
-          disabled={loading}
-          style={{
-            padding: "12px 28px", fontSize: 16, fontWeight: 600,
-            background: loading ? "#94a3b8" : "#6366f1",
-            color: "white", border: "none", borderRadius: 8, cursor: "pointer"
-          }}
-        >
-          {loading ? "Starting..." : "Research"}
-        </button>
-      </div>
-
-      {message && (
-        <div style={{
-          padding: "12px 16px", background: "#f0fdf4",
-          border: "1px solid #86efac", borderRadius: 8, marginBottom: 16,
-          color: "#166534"
-        }}>
-          {message}
+      <div style={{
+        background: "linear-gradient(135deg, #1e1b4b, #312e81)",
+        padding: "32px 40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottom: "1px solid #312e81"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 32 }}>🤖</span>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: "#fff" }}>
+            AI Research Agent
+          </h1>
         </div>
-      )}
+
+        {/* Search Box */}
+        <div style={{ display: "flex", gap: 10, flex: 1, maxWidth: 600, marginLeft: 40 }}>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && startResearch()}
+            placeholder="Enter any research topic..."
+            style={{
+              flex: 1, padding: "12px 18px", fontSize: 15,
+              border: "2px solid #4338ca", borderRadius: 10,
+              background: "#1e1b4b", color: "#fff", outline: "none"
+            }}
+          />
+          <button
+            onClick={startResearch}
+            disabled={loading}
+            style={{
+              padding: "12px 24px", fontSize: 15, fontWeight: 700,
+              background: loading ? "#4338ca" : "linear-gradient(135deg, #6366f1, #8b5cf6)",
+              color: "white", border: "none", borderRadius: 10,
+              cursor: loading ? "not-allowed" : "pointer",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {loading ? "⏳" : "🔍 Research"}
+          </button>
+        </div>
+      </div>
 
       {/* Main Layout */}
-      <div style={{ display: "flex", gap: 24 }}>
+      <div style={{ display: "flex", height: "calc(100vh - 89px)" }}>
 
-        {/* Sessions List */}
-        <div style={{ width: 320, flexShrink: 0 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
-            Research Sessions ({sessions.length})
-          </h2>
+        {/* Left Panel - Sessions */}
+        <div style={{
+          width: 280, flexShrink: 0,
+          background: "#0f172a",
+          borderRight: "1px solid #1e293b",
+          overflowY: "auto", padding: 16
+        }}>
+          <p style={{
+            fontSize: 12, fontWeight: 600, color: "#475569",
+            textTransform: "uppercase", letterSpacing: 1, marginBottom: 12
+          }}>
+            History ({sessions.length})
+          </p>
+
           {sessions.length === 0 && (
-            <p style={{ color: "#94a3b8", fontSize: 14 }}>No sessions yet.</p>
+            <div style={{ padding: 20, textAlign: "center", color: "#334155", fontSize: 13 }}>
+              No research yet
+            </div>
           )}
+
           {sessions.map((s) => (
             <div
               key={s.id}
               onClick={() => fetchSession(s.id)}
               style={{
-                padding: 12, marginBottom: 8, borderRadius: 8,
-                border: selected?.id === s.id ? "2px solid #6366f1" : "1px solid #e2e8f0",
-                cursor: "pointer", background: "white"
+                padding: "12px 14px", marginBottom: 8, borderRadius: 10,
+                border: selected?.id === s.id ? "1px solid #6366f1" : "1px solid #1e293b",
+                cursor: "pointer",
+                background: selected?.id === s.id ? "#1e1b4b" : "#1e293b",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 600, padding: "2px 8px",
-                  borderRadius: 12, background: statusColor(s.status) + "22",
-                  color: statusColor(s.status)
+                  fontSize: 10, fontWeight: 700, padding: "2px 8px",
+                  borderRadius: 20, background: statusBg(s.status),
+                  color: statusColor(s.status), border: `1px solid ${statusColor(s.status)}33`
                 }}>
-                  {s.status.toUpperCase()}
+                  {s.status === "running" ? "⏳" : s.status === "completed" ? "✅" : "❌"}
+                  {" "}{s.status.toUpperCase()}
                 </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); deleteSession(s.id); }}
                   style={{
-                    background: "none", border: "none", cursor: "pointer",
-                    color: "#94a3b8", fontSize: 16
+                    background: "none", border: "none",
+                    cursor: "pointer", color: "#334155", fontSize: 16
                   }}
-                >
-                  ×
-                </button>
+                >×</button>
               </div>
-              <p style={{ margin: "8px 0 4px", fontWeight: 500, fontSize: 14 }}>
+              <p style={{
+                margin: "8px 0 4px", fontWeight: 600,
+                fontSize: 13, color: "#e2e8f0",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
+              }}>
                 {s.query}
               </p>
-              <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>
+              <p style={{ margin: 0, fontSize: 11, color: "#334155" }}>
                 {new Date(s.created_at).toLocaleString()}
               </p>
             </div>
           ))}
         </div>
 
-        {/* Report View */}
-        <div style={{ flex: 1 }}>
+        {/* Right Panel - Report */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 32 }}>
           {!selected ? (
             <div style={{
-              padding: 40, textAlign: "center", color: "#94a3b8",
-              border: "1px dashed #e2e8f0", borderRadius: 8
+              height: "100%", display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", color: "#334155"
             }}>
-              Click a session to view the report
+              <div style={{ fontSize: 64, marginBottom: 16 }}>🔬</div>
+              <p style={{ fontSize: 20, fontWeight: 600 }}>Start a research topic</p>
+              <p style={{ fontSize: 14, marginTop: 8 }}>
+                Type any topic in the search bar above
+              </p>
             </div>
           ) : (
-            <div>
-              {/* Agent Steps */}
-              {selected.steps && selected.steps.length > 0 && (
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>
-                    Agent Steps
-                  </h3>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {selected.steps.map((step, i) => (
-                      <div key={i} style={{
-                        padding: "6px 12px", borderRadius: 6, fontSize: 12,
-                        background: step.status === "success" ? "#f0fdf4" : "#fef2f2",
-                        border: `1px solid ${step.status === "success" ? "#86efac" : "#fca5a5"}`,
-                        color: step.status === "success" ? "#166534" : "#991b1b"
-                      }}>
-                        {step.agent_name} → {step.action}
-                      </div>
-                    ))}
-                  </div>
+            <div style={{ maxWidth: 800, margin: "0 auto" }}>
+              {selected.status === "running" ? (
+                <div style={{ textAlign: "center", padding: 80 }}>
+                  <div style={{ fontSize: 56 }}>⏳</div>
+                  <p style={{ color: "#f59e0b", fontSize: 20, marginTop: 16, fontWeight: 600 }}>
+                    Researching...
+                  </p>
+                  <p style={{ color: "#475569", fontSize: 14, marginTop: 8 }}>
+                    Agents are searching the web and compiling your report
+                  </p>
+                </div>
+              ) : selected.status === "failed" ? (
+                <div style={{ textAlign: "center", padding: 80 }}>
+                  <div style={{ fontSize: 56 }}>❌</div>
+                  <p style={{ color: "#ef4444", fontSize: 20, marginTop: 16 }}>
+                    Research failed. Please try again.
+                  </p>
+                </div>
+              ) : (
+                <div style={{
+                  background: "#1e293b", borderRadius: 16,
+                  padding: 40, border: "1px solid #334155", lineHeight: 1.8
+                }}>
+                  <ReactMarkdown
+                    components={{
+                      h1: ({node, ...props}) => <h1 style={{ color: "#a5b4fc", borderBottom: "1px solid #334155", paddingBottom: 12 }} {...props} />,
+                      h2: ({node, ...props}) => <h2 style={{ color: "#818cf8", marginTop: 28 }} {...props} />,
+                      h3: ({node, ...props}) => <h3 style={{ color: "#6366f1" }} {...props} />,
+                      p: ({node, ...props}) => <p style={{ color: "#cbd5e1", lineHeight: 1.8 }} {...props} />,
+                      li: ({node, ...props}) => <li style={{ color: "#cbd5e1", marginBottom: 6 }} {...props} />,
+                      strong: ({node, ...props}) => <strong style={{ color: "#e2e8f0" }} {...props} />,
+                    }}
+                  >
+                    {selected.report || "No report yet."}
+                  </ReactMarkdown>
                 </div>
               )}
-
-              {/* Sources */}
-              {selected.sources && selected.sources.length > 0 && (
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>
-                    Sources ({selected.sources.length})
-                  </h3>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {selected.sources.slice(0, 5).map((src, i) => (
-                      <a key={i} href={src.url} target="_blank" rel="noreferrer"
-                        style={{
-                          padding: "4px 10px", borderRadius: 6, fontSize: 12,
-                          background: "#f8fafc", border: "1px solid #e2e8f0",
-                          color: "#6366f1", textDecoration: "none"
-                        }}>
-                        {src.title?.slice(0, 30) || "Source"}...
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Report */}
-              <div style={{
-                padding: 24, background: "white",
-                border: "1px solid #e2e8f0", borderRadius: 8
-              }}>
-                {selected.status === "running" ? (
-                  <p style={{ color: "#f59e0b" }}>Research in progress... please wait.</p>
-                ) : selected.status === "failed" ? (
-                  <p style={{ color: "#ef4444" }}>Research failed. Please try again.</p>
-                ) : (
-                  <ReactMarkdown>{selected.report || "No report yet."}</ReactMarkdown>
-                )}
-              </div>
             </div>
           )}
         </div>
