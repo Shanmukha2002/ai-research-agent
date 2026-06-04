@@ -1,3 +1,9 @@
+## Live Demo
+
+- 🌐 Frontend: https://ai-research-agent-1-4e49.onrender.com
+- 📡 API Docs: https://ai-research-agent-ptrm.onrender.com/docs
+- 💻 GitHub: https://github.com/Shanmukha2002/ai-research-agent
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
