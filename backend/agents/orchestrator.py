@@ -6,7 +6,7 @@ from backend.db.models import ResearchSession, AgentStep, ResearchSource, Resear
 import uuid
 
 
-def run_research_pipeline(query: str, session_id: str = None) -> dict:
+def run_research_pipeline(query: str, session_id: str = None, language: str = "English") -> dict:
     """
     Main pipeline that connects all agents.
     Planner → Researcher (x N) → Writer → Save to DB
@@ -85,7 +85,7 @@ def run_research_pipeline(query: str, session_id: str = None) -> dict:
 
         # --- Step 3: Writer Agent ---
         print(f"[Writer] Compiling final report...")
-        writer_result = run_writer(query, all_research)
+        writer_result = run_writer(query, all_research, language)
 
         db.add(AgentStep(
             session_id=session_id,

@@ -13,6 +13,7 @@ router = APIRouter()
 
 class ResearchRequest(BaseModel):
     query: str
+    language: str = "English"
 
 
 class ResearchResponse(BaseModel):
@@ -38,9 +39,9 @@ def start_research(request: ResearchRequest, db: Session = Depends(get_db)):
 
     # Run pipeline in background thread so API returns immediately
     thread = threading.Thread(
-        target=run_research_pipeline,
-        args=(request.query,)
-    )
+    target=run_research_pipeline,
+    args=(request.query, None, request.language)
+)
     thread.daemon = True
     thread.start()
 
@@ -136,6 +137,38 @@ def delete_session(session_id: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Session deleted successfully"}
+
+class TranslateRequest(BaseModel):
+    report: str
+    language: str
+
+@router.post("/translate")
+def translate_report(request: TranslateRequest):
+    """
+    Translates an existing report to a different language.
+    """
+    from langchain_groq import ChatGroq
+    from langchain_core.messages import HumanMessage, SystemMessage
+    from backend.core.config import get_settings
+
+    settings = get_settings()
+    llm = ChatGroq(
+        model="llama-3.3-70b-versatile",
+        api_key=settings.groq_api_key,
+        temperature=0.3
+    )
+
+    messages = [
+        SystemMessage(content=f"""You are a professional translator. 
+        Translate the following research report to {request.language} language.
+        Keep all markdown formatting (##, ###, -, *) exactly the same.
+        Only translate the text content, not the markdown symbols.
+        Return only the translated report, nothing else."""),
+        HumanMessage(content=request.report)
+    ]
+
+    response = llm.invoke(messages)
+    return {"translated_report": response.content.strip()}
 
 
 @router.get("/health")

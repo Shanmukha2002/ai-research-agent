@@ -10,10 +10,19 @@ llm = ChatGroq(
     temperature=0.4
 )
 
-WRITER_SYSTEM_PROMPT = """
+
+def run_writer(query: str, research_results: list[dict], language: str = "English") -> dict:
+    """
+    Takes the original query and all research results,
+    compiles them into a final report in the specified language.
+    """
+
+    WRITER_SYSTEM_PROMPT = f"""
 You are a Professional Research Writer Agent. You receive a research query 
 and multiple research summaries. Your job is to compile them into a 
 well-structured, professional research report.
+
+IMPORTANT: Write the ENTIRE report in {language} language only.
 
 Report Format:
 # [Report Title]
@@ -43,19 +52,12 @@ Detailed paragraph based on research summary 3.
 2-3 sentences summarizing insights and future outlook.
 
 Rules:
+- Write everything in {language} language
 - Be factual and professional
 - Use the research summaries provided
-- Do not add information not present in the summaries
 - Keep total length between 500-800 words
 """
 
-
-def run_writer(query: str, research_results: list[dict]) -> dict:
-    """
-    Takes the original query and all research results,
-    compiles them into a final report.
-    """
-    # Build the research content
     research_content = ""
     for i, result in enumerate(research_results, 1):
         research_content += f"\n--- Research {i} ---\n"
@@ -70,7 +72,6 @@ def run_writer(query: str, research_results: list[dict]) -> dict:
     response = llm.invoke(messages)
     report = response.content.strip()
 
-    # Extract a short summary (first paragraph after Executive Summary)
     lines = report.split("\n")
     short_summary = ""
     for line in lines:
