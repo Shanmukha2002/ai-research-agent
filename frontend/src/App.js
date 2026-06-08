@@ -26,7 +26,6 @@ const styles = `
   .source-link:hover { background: #312e81 !important; transform: translateY(-2px); }
 
   .report-card { animation: fadeIn 0.5s ease; }
-
   .translate-btn { transition: all 0.2s ease; }
   .translate-btn:hover { transform: scale(1.05); }
 
@@ -37,17 +36,14 @@ const styles = `
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
-
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
-
   @keyframes gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -62,12 +58,6 @@ const styles = `
 
   .input-field { transition: all 0.2s ease; }
   .input-field:focus {
-    border-color: #818cf8 !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-  }
-
-  .select-field { transition: all 0.2s ease; }
-  .select-field:focus {
     border-color: #818cf8 !important;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
   }
@@ -96,7 +86,6 @@ function App() {
   const [sessions, setSessions] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState("English");
   const [toast, setToast] = useState("");
   const [translatedReport, setTranslatedReport] = useState("");
   const [translating, setTranslating] = useState(false);
@@ -137,8 +126,8 @@ function App() {
     }
     setLoading(true);
     try {
-      await axios.post(`${API}/research`, { query, language });
-      showToast(`✅ Research started in ${language}! Results in ~30 seconds.`);
+      await axios.post(`${API}/research`, { query });
+      showToast("✅ Research started! Results in ~30 seconds.");
       setQuery("");
       setTimeout(fetchSessions, 2000);
     } catch (err) {
@@ -259,21 +248,6 @@ function App() {
                 background: "rgba(30,27,75,0.8)", color: "#fff", outline: "none"
               }}
             />
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="select-field"
-              style={{
-                padding: "10px 12px", fontSize: 13,
-                border: "2px solid rgba(99,102,241,0.5)", borderRadius: 10,
-                background: "rgba(30,27,75,0.8)", color: "#fff", outline: "none",
-                cursor: "pointer", flexShrink: 0
-              }}
-            >
-              <option value="English">🇬🇧 English</option>
-              <option value="Hindi">🇮🇳 Hindi</option>
-              <option value="Kannada">🇮🇳 Kannada</option>
-            </select>
             <button
               onClick={startResearch}
               disabled={loading}
