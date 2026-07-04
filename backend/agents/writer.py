@@ -5,7 +5,7 @@ from backend.core.config import get_settings
 settings = get_settings()
 
 llm = ChatGroq(
-    model="qwen-qwq-32b",
+    model="llama-3.1-8b-instant",
     api_key=settings.groq_api_key,
     temperature=0.4
 )

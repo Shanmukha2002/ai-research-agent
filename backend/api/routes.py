@@ -153,7 +153,7 @@ def translate_report(request: TranslateRequest):
 
     settings = get_settings()
     llm = ChatGroq(
-        model="qwen-qwq-32b",
+        model="llama-3.1-8b-instant",
         api_key=settings.groq_api_key,
         temperature=0.3
     )
